@@ -1,9 +1,11 @@
 
 ## 第一部分： 基础信息
-name: bare_helloworld                              # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
-version: v7.9.1                                    # <必选项> 组件版本号
-description: 一个简单的基于baremetal的helloword demo，可运行在QEMU环境.                   # <必选项> 建议至少20字以上
-type: solution                                      # <必选项> 组件类型，为：solution, chip, board, common, sdk
+name: board_riscv_dummy                             # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+version: v7.9.1                                     # <必选项> 组件版本号
+description: riscv dummy development board config.  # <必选项> 建议至少20字以上
+type: board                                         # <必选项> 组件类型，为：solution, chip, board, common, sdk
+tag: 核心模块                                       # <可选项> 组件分类，缺省值： ''
+license: Apache license v2.0                        # <可选项> 源代码的许可证，要确保所有代码、文件的许可证不冲突。如：MIT，Apache license v2.0，BSD
 
 ## 第二部分：依赖信息
 #           指定该组件依赖的组件及版本，版本支持条件比较，支持：>=v1.0, >v1.0, ==v1.0, <=v1.0, <v1.0, v1.0
@@ -15,12 +17,7 @@ type: solution                                      # <必选项> 组件类型�
 #   - minilibc: v7.2.0
 #   - aos: >=v7.2.0
 depends:
-  - csi: v7.9.1
-  - libc_bare: v7.9.1
-  - board_riscv_dummy: v7.9.1
   - chip_riscv_dummy: v7.9.1
-  - board_d133_cbv: v7.9.1
-  - chip_d133_cbs: v7.9.1
 
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
@@ -43,16 +40,13 @@ depends:
 #     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
 #     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
 
-## solution component
+## board component
 # hw_info:
-#   cpu_id: cpu0
-#   board_name: pangu_cpu0_evb
-#   cpu_name: CK805EF
-#   vendor_name: xuantie
-#   chip_name: 'chip_pangu'
-#   ld_script: configs/gcc_eflash.ld.S
+#   chip_name: chip_pangu
+#   ld_script: configs/gcc_eflash.ld
 hw_info:
-  board_name: board_riscv_dummy
+  vendor_name: dummy
+  chip_name: chip_riscv_dummy
 
 ## 第四部分：编译连接信息
 # build_config:                            # <可选项> 编译配置项
@@ -73,14 +67,30 @@ hw_info:
 #   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
 #     - libs                               #   -Llibs
 build_config:
+  cflag: >
+    -nostdlib -Wpointer-arith -Wno-undef -Wall -Wl,-EL -ffunction-sections
+    -fdata-sections -fno-inline-functions -fno-builtin -fno-strict-aliasing
+    -fno-strength-reduce
   ldflag: '-Wl,-zmax-page-size=1024 -Wl,-Map=yoc.map'
   include:
-# cflag: '-g -O0'
+    - include
+
+  prebuild_script: "script/pre_build.sh"
+  postbuild_script: "script/aft_build.sh"
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - "app/src/main.c"
+  - "src/board_init.c"
+  - "src/adc/board_adc.c"
+  - "src/audio/board_audio.c"
+  - "src/bt/board_bt.c"
+  - "src/button/board_button.c"
+  - "src/gpio/board_gpio.c"
+  - "src/led/board_led.c"
+  - "src/pwm/board_pwm.c"
+  - "src/uart/board_uart.c"
+  - "src/wifi/board_wifi.c"
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -88,15 +98,28 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-  CONFIG_KERNEL_NONE: 1
-  CONFIG_DEBUG: 1
-# CONFIG_RISCV_SMODE: 1
+  CONFIG_ARCH_MAINSTACK: 4096              # for baremetal application
+  CONFIG_ARCH_INTERRUPTSTACK: 4096
+  CONFIG_INIT_TASK_STACK_SIZE: 4096
+  CONFIG_APP_TASK_STACK_SIZE: 4096
+  CONFIG_SYSTICK_HZ: 100
+  CONFIG_BOARD_SMARTL_EVB: 1
 
 ## 第六部分：安装信息
 # install:
 #   - dest: include/                       # 安装的目的路径 dest是相对路径，通常是相对于YoC SDK 安装目录
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
+install:
+  - dest: "include"
+    source:
+      - "include/*.h"
+  - dest: "board_dummy/bootimgs"
+    source:
+      - "bootimgs/*"
+  - dest: "board_dummy/configs"
+    source:
+      - "configs/*"
 
 ## 第七部分：导出部分
 # export:
