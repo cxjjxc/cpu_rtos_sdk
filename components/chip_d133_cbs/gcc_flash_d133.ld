@@ -2,6 +2,61 @@
  * Copyright (C) 2017-2024 Alibaba Group Holding Limited
  */
 
+/*
+ ******************************************************************************
+                d13x Memory Layout
+ ******************************************************************************
+
+           配置(1)        配置(2)       配置(3)
+          SRAM_S1 OFF   SRAM_S1 OFF    SRAM_S1 ON
+              TCM ON        TCM OFF
+0x30040000+----------+  +----------+ +----------+
+          |   ITCM   |  |          | |          |
+          |   128K   |  |          | |   TCM    |
+0x30060000+----------+  |          | |    +     |
+          |   DTCM   |  |          | | SRAM_S0  |
+          |   128k   |  |  SRAM_S0 | |          |
+0x30080000+----------+  |    1M    | |1M-sram_s1|
+          |          |  |          | |   size   |
+          |          |  |          | |          |
+          |          |  |          | |          |
+          |  SRAM_S0 |  |          | +----------+
+          |   768K   |  |          |
+          |          |  |          |
+          |          |  |          |
+          |          |  |          |
+          |          |  |          |
+0x3013FFFF+----------+  +----------+
+
+0x3FF00000 ------------------------> +----------+
+- sram_s1 size                       |  SRAM_S1 |
+                                     |          |
+                                     |128K/256K/|
+                                     |384K/512K/|
+                                     |640K/768K |
+0x3FFFFFFF ------------------------> +----------+
+
+0x40000000+----------+
+          |          |
+          |  PSRAM   |
+          |  4M/8M   |
+          |          |
+          |          |
+          +----------+
+          |          |
+          | FPGA Ext |
+          |  PSRAM   |
+          | 64M-psram|
+          |     size |
+          |          |
+          |          |
+          |          |
+          |          |
+          |          |
+          |          |
+0x43FFFFFF+----------+
+ */
+
 /******************************************************************************
  * @file     gcc_csky.ld
  * @brief    csky linker file
@@ -10,18 +65,19 @@
  ******************************************************************************/
 MEMORY
 {
-    ISRAM : ORIGIN = 0x00000000 , LENGTH = 0x20000   /* ISRAM 128KB*/
-    DSRAM : ORIGIN = 0x20000000 , LENGTH = 0x80000   /* DSRAM 512KB*/
+    BROM        : ORIGIN = 0x30000000                                             , LENGTH = 256K
+    SRAM_S0     : ORIGIN = 0x30040000                                             , LENGTH = 0x100000 - 0x40000
+    PSRAM_CMA   : ORIGIN = 0x40000000                                             , LENGTH = 0x800000
 }
 
-__min_heap_size = 0x200;
-PROVIDE (__ram_end  = 0x20020000);
+__min_heap_size = 0x1000;
+PROVIDE (__ram_end  = 0x30140000);
 PROVIDE (__heap_end = __ram_end);
 
-REGION_ALIAS("REGION_TEXT",    ISRAM);
-REGION_ALIAS("REGION_RODATA",  ISRAM);
-REGION_ALIAS("REGION_DATA",    DSRAM);
-REGION_ALIAS("REGION_BSS",     DSRAM);
+REGION_ALIAS("REGION_TEXT",    PSRAM_CMA);
+REGION_ALIAS("REGION_RODATA",  PSRAM_CMA);
+REGION_ALIAS("REGION_DATA",    SRAM_S0);
+REGION_ALIAS("REGION_BSS",     SRAM_S0);
 
 ENTRY(Reset_Handler)
 SECTIONS

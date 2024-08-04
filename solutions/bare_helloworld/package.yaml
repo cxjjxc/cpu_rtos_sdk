@@ -52,7 +52,7 @@ depends:
 #   chip_name: 'chip_pangu'
 #   ld_script: configs/gcc_eflash.ld.S
 hw_info:
-  board_name: board_riscv_dummy
+  board_name: board_d133_cbv
 
 ## 第四部分：编译连接信息
 # build_config:                            # <可选项> 编译配置项
