@@ -1,0 +1,24 @@
+menu "St16xx touch panel options"
+
+config AIC_TOUCH_PANEL_ST16XX
+    bool "Using touch panel st16xx"
+    default n
+    select AIC_I2C_DRV
+
+config AIC_TOUCH_PANEL_ST16XX_I2C_CHA
+    string "st16xx using i2c channel index"
+    default "i2c3"
+    depends on AIC_TOUCH_PANEL_ST16XX
+
+config AIC_TOUCH_PANEL_ST16XX_RST_PIN
+    string "st16xx reset pin"
+    default "PA.8"
+    depends on AIC_TOUCH_PANEL_ST16XX
+
+config AIC_TOUCH_PANEL_ST16XX_INT_PIN
+    string "st16xx irq pin"
+    default "PA.9"
+    depends on AIC_TOUCH_PANEL_ST16XX
+
+endmenu
+

@@ -70,6 +70,16 @@ static void interrupt_init(void)
   */
 void SystemInit(void)
 {
+
+    char* str = "test\n";
+    aic_board_sysclk_init();
+    aic_board_pinmux_init();
+    uart_init(0);
+    
+    for(int i =0;i < strlen(str); i++) {
+        uart_putchar(0, str[i]);
+    }
+
     /* enable theadisaee & MM */
     uint32_t status = __get_MXSTATUS();
     status |= (1 << 22 | 1 << 15);

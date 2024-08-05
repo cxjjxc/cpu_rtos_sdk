@@ -1,0 +1,13 @@
+Import('AIC_ROOT')
+Import('PRJ_KERNEL')
+from building import *
+
+cwd = GetCurrentDir()
+CPPPATH = []
+src = []
+if GetDepend('KERNEL_BAREMETAL') and GetDepend('AIC_SE_PM_DRV_TEST'):
+    src += Glob('test_se_pm.c')
+
+group = DefineGroup('test-se-pm', src, depend = [''], CPPPATH = CPPPATH)
+
+Return('group')

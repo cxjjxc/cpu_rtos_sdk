@@ -92,6 +92,10 @@ build_config:
   include:
     - include
     - include/asm
+    - src/drivers/bsp/common/include
+    - src/drivers/bsp/artinchip/sys/d13x/include
+    - src/drivers/bsp/artinchip/include/hal
+    - src/drivers/bsp/artinchip/include/drv_bare
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -108,6 +112,21 @@ source_file:
   - src/drivers/power_manage.c
   - src/drivers/timer.c
   - src/drivers/uart.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_clk.c
+  - src/drivers/bsp/artinchip/drv_bare/uart/uart.c
+  - src/drivers/bsp/artinchip/hal/gpio/aic_hal_gpio.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_clk_def_v11.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_reset_def_v11.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_fixed_parent_clk.c
+  - src/drivers/bsp/artinchip/hal/uart/aic_hal_uart.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_multi_parent_clk.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_disp_clk.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_pll_clk.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_reset.c
+  - src/drivers/bsp/artinchip/sys/d13x/time.c
+  - src/drivers/bsp/artinchip/sys/d13x/aic_drv_irq.c
+  - src/drivers/bsp/artinchip/hal/cmu/aic_hal_fixed_rate_clk.c
+  #- src/drivers/bsp/artinchip/sys/d13x/sys_freq.c
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -124,6 +143,7 @@ def_config:
   CONFIG_ARCH_MAINSTACK: 4096              # for baremetal application
   CONFIG_ARCH_INTERRUPTSTACK: 4096
   CONFIG_CPU_E907FDP: 1
+  AIC_USING_UART0: 1
 
 ## 第六部分：安装信息
 # install:

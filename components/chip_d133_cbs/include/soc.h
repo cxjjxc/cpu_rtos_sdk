@@ -8,6 +8,10 @@
 #include <stdint.h>
 #include <csi_core.h>
 #include <sys_clk.h>
+#include <aic_gpio_id.h>
+#include <aic_soc.h>
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +41,7 @@ typedef enum {
     MEMORY_DMAN                    = 4U,
 } dman_type_t;
 
+#if 0
 typedef enum {
     PA0         = 0U,
     PA1,
@@ -206,6 +211,7 @@ typedef enum {
     PIN_FUNC_GPIO                  =  4U,
     PIN_FUNC_END                   =  0xFFFFFFFFU
 } pin_func_t;
+#endif
 
 #define CONFIG_IRQ_NUM              64U
 
@@ -216,6 +222,10 @@ typedef enum {
 #define SRAM_SIZE                   0x20000U
 
 #if CONFIG_CPU_E9XX
+
+#define irqn_type_t IRQn_Type
+
+#if 0
 
 typedef enum {
     User_Software_IRQn             =  0U,      /* User software interrupt */
@@ -231,6 +241,8 @@ typedef enum {
     TIM2_IRQn                      =  20U,      /* timer2 Interrupt */
     TIM3_IRQn                      =  21U,      /* timer3 Interrupt */
 } irqn_type_t;
+
+#endif
 
 #define DW_UART0_BASE               0x40015000UL
 #define DW_TIMER0_BASE              0x40011000UL
@@ -284,5 +296,6 @@ typedef enum IRQn {
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif  /* _SOC_H_ */

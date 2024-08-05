@@ -1,0 +1,23 @@
+menu "Axs15260 touch panel options"
+
+config AIC_TOUCH_PANEL_AXS15260
+    bool "Using touch panel axs15260"
+    default n
+    select AIC_I2C_DRV
+
+config AIC_TOUCH_PANEL_AXS15260_I2C_CHA
+    string "axs15260 using i2c channel index"
+    default "i2c2"
+    depends on AIC_TOUCH_PANEL_AXS15260
+
+config AIC_TOUCH_PANEL_AXS15260_RST_PIN
+    string "axs15260 reset pin"
+    default "PA.10"
+    depends on AIC_TOUCH_PANEL_AXS15260
+
+config AIC_TOUCH_PANEL_AXS15260_INT_PIN
+    string "axs15260 irq pin"
+    default "PA.11"
+    depends on AIC_TOUCH_PANEL_AXS15260
+
+endmenu
