@@ -155,30 +155,31 @@ void dw_uart_irq_handler(void *arg)
     }
 }
 
+
+    // uart_init(0);
+    
+    // for(int i =0;i < strlen(str); i++) {
+    //     uart_putchar(0, str[i]);
+    // }
+
 csi_error_t csi_uart_init(csi_uart_t *uart, uint32_t idx)
 {
     CSI_PARAM_CHK(uart, CSI_ERROR);
 
     csi_error_t ret = CSI_OK;
-    dw_uart_regs_t *uart_base;
 
-    ret = target_get(DEV_DW_UART_TAG, idx, &uart->dev);
-
-    if (ret == CSI_OK) {
-        uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
-
-        dw_uart_fifo_init(uart_base);
-
-        uart->rx_size = 0U;
-        uart->tx_size = 0U;
-        uart->rx_data = NULL;
-        uart->tx_data = NULL;
-        uart->tx_dma  = NULL;
-        uart->rx_dma  = NULL;
-        dw_uart_disable_trans_irq(uart_base);
-        dw_uart_disable_recv_irq(uart_base);
-        dw_uart_disable_auto_flow_control(uart_base);
+    ret = uart_init(idx);
+    if(ret < 0) {
+        return ret;
     }
+    
+    uart->rx_size = 0U;
+    uart->tx_size = 0U;
+    uart->rx_data = NULL;
+    uart->tx_data = NULL;
+    uart->tx_dma  = NULL;
+    uart->rx_dma  = NULL;
+    uart->dev.idx = idx;
 
     return ret;
 }
@@ -207,10 +208,8 @@ ATTRIBUTE_DATA csi_error_t csi_uart_baud(csi_uart_t *uart, uint32_t baud)
 
     int32_t ret = 0;
     csi_error_t csi_ret = CSI_OK;
-    dw_uart_regs_t *uart_base;
-    uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
 
-    ret = dw_uart_config_baudrate(uart_base, baud, soc_get_uart_freq((uint32_t)(uart->dev.idx)));
+    ret = uart_config_update(uart->dev.idx, baud);
 
     if (ret == 0) {
         csi_ret = CSI_OK;
@@ -221,91 +220,12 @@ ATTRIBUTE_DATA csi_error_t csi_uart_baud(csi_uart_t *uart, uint32_t baud)
     return csi_ret;
 }
 
+
+
 csi_error_t csi_uart_format(csi_uart_t *uart,  csi_uart_data_bits_t data_bits,
                             csi_uart_parity_t parity, csi_uart_stop_bits_t stop_bits)
 {
-    CSI_PARAM_CHK(uart, CSI_ERROR);
-
-    int32_t ret = 0;
-    csi_error_t csi_ret = CSI_OK;
-    dw_uart_regs_t *uart_base;
-    uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
-
-    switch (data_bits) {
-    case UART_DATA_BITS_5:
-        ret = dw_uart_config_data_bits(uart_base, 5U);
-        break;
-
-    case UART_DATA_BITS_6:
-        ret = dw_uart_config_data_bits(uart_base, 6U);
-        break;
-
-    case UART_DATA_BITS_7:
-        ret = dw_uart_config_data_bits(uart_base, 7U);
-        break;
-
-    case UART_DATA_BITS_8:
-        ret = dw_uart_config_data_bits(uart_base, 8U);
-        break;
-
-    default:
-        ret = -1;
-        break;
-    }
-
-    if (ret == 0) {
-        switch (parity) {
-        case UART_PARITY_NONE:
-            ret = dw_uart_config_parity_none(uart_base);
-            break;
-
-        case UART_PARITY_ODD:
-            ret = dw_uart_config_parity_odd(uart_base);
-            break;
-
-        case UART_PARITY_EVEN:
-            ret = dw_uart_config_parity_even(uart_base);
-            break;
-
-        default:
-            ret = -1;
-            break;
-        }
-
-        if (ret == 0) {
-            switch (stop_bits) {
-            case UART_STOP_BITS_1:
-                ret = dw_uart_config_stop_bits(uart_base, 1U);
-                break;
-
-            case UART_STOP_BITS_2:
-                ret = dw_uart_config_stop_bits(uart_base, 2U);
-                break;
-
-            case UART_STOP_BITS_1_5:
-                if (data_bits == UART_DATA_BITS_5) {
-                    ret = dw_uart_config_stop_bits(uart_base, 2U);
-                    break;
-                }
-
-            default:
-                ret = -1;
-                break;
-            }
-
-            if (ret != 0) {
-                csi_ret = CSI_ERROR;
-            }
-
-        } else {
-            csi_ret = CSI_ERROR;
-        }
-
-    } else {
-        csi_ret = CSI_ERROR;
-    }
-
-    return csi_ret;
+    return 0;
 }
 
 csi_error_t csi_uart_flowctrl(csi_uart_t *uart,  csi_uart_flowctrl_t flowctrl)
@@ -343,17 +263,7 @@ void csi_uart_putc(csi_uart_t *uart, uint8_t ch)
 {
     CSI_PARAM_CHK_NORETVAL(uart);
 
-    volatile int i = 10;
-    uint32_t timeout = UART_TIMEOUT;
-    dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
-
-    while (!dw_uart_putready(uart_base) && timeout--);
-
-    if (timeout) {
-        //FIXME: fix print luanma on irq-mode sometimes. maybe hw bug
-        while (i--);
-        dw_uart_putchar(uart_base, ch);
-    }
+    uart_putchar(uart->dev.idx, ch);
 }
 
 ATTRIBUTE_DATA uint8_t csi_uart_getc(csi_uart_t *uart)
