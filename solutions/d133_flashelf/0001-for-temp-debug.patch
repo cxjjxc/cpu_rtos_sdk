@@ -1,0 +1,115 @@
+From 176153e526e8b7ce2cd58d7172f8c40f4ad3165f Mon Sep 17 00:00:00 2001
+From: cxj <1178839884@qq.com>
+Date: Mon, 5 Aug 2024 21:51:53 +0800
+Subject: [PATCH] for temp debug
+
+---
+ components/chip_d133_cbs/gcc_flash_d133.ld    |  4 ++--
+ components/chip_d133_cbs/package.yaml         |  2 ++
+ .../chip_d133_cbs/src/arch/e907fdp/startup.S  |  2 +-
+ .../chip_d133_cbs/src/arch/e907fdp/system.c   | 21 +++++++++++--------
+ components/chip_d133_cbs/src/sys/sys_clk.c    |  5 +++--
+ 5 files changed, 20 insertions(+), 14 deletions(-)
+
+diff --git a/components/chip_d133_cbs/gcc_flash_d133.ld b/components/chip_d133_cbs/gcc_flash_d133.ld
+index beb1fdf..acbaa64 100644
+--- a/components/chip_d133_cbs/gcc_flash_d133.ld
++++ b/components/chip_d133_cbs/gcc_flash_d133.ld
+@@ -74,8 +74,8 @@ __min_heap_size = 0x1000;
+ PROVIDE (__ram_end  = 0x30140000);
+ PROVIDE (__heap_end = __ram_end);
+ 
+-REGION_ALIAS("REGION_TEXT",    PSRAM_CMA);
+-REGION_ALIAS("REGION_RODATA",  PSRAM_CMA);
++REGION_ALIAS("REGION_TEXT",    SRAM_S0);
++REGION_ALIAS("REGION_RODATA",  SRAM_S0);
+ REGION_ALIAS("REGION_DATA",    SRAM_S0);
+ REGION_ALIAS("REGION_BSS",     SRAM_S0);
+ 
+diff --git a/components/chip_d133_cbs/package.yaml b/components/chip_d133_cbs/package.yaml
+index c8a7178..29c1322 100644
+--- a/components/chip_d133_cbs/package.yaml
++++ b/components/chip_d133_cbs/package.yaml
+@@ -144,6 +144,8 @@ def_config:
+   CONFIG_ARCH_INTERRUPTSTACK: 4096
+   CONFIG_CPU_E907FDP: 1
+   AIC_USING_UART0: 1
++  CONFIG_CPU_E9XX: 1
++  CONFIG_CPU_E907FDP: 1
+ 
+ ## 第六部分：安装信息
+ # install:
+diff --git a/components/chip_d133_cbs/src/arch/e907fdp/startup.S b/components/chip_d133_cbs/src/arch/e907fdp/startup.S
+index 020064a..64930a8 100644
+--- a/components/chip_d133_cbs/src/arch/e907fdp/startup.S
++++ b/components/chip_d133_cbs/src/arch/e907fdp/startup.S
+@@ -12,7 +12,7 @@ __Vectors:
+     .long   Default_Handler
+     .long   Default_Handler
+     .long   Default_Handler
+-    .long   tspend_handler
++    .long   Default_Handler
+     .long   Default_Handler
+     .long   Default_Handler
+     .long   Default_Handler
+diff --git a/components/chip_d133_cbs/src/arch/e907fdp/system.c b/components/chip_d133_cbs/src/arch/e907fdp/system.c
+index 42cd9bd..77b9de2 100644
+--- a/components/chip_d133_cbs/src/arch/e907fdp/system.c
++++ b/components/chip_d133_cbs/src/arch/e907fdp/system.c
+@@ -72,13 +72,6 @@ void SystemInit(void)
+ {
+ 
+     char* str = "test\n";
+-    aic_board_sysclk_init();
+-    aic_board_pinmux_init();
+-    uart_init(0);
+-    
+-    for(int i =0;i < strlen(str); i++) {
+-        uart_putchar(0, str[i]);
+-    }
+ 
+     /* enable theadisaee & MM */
+     uint32_t status = __get_MXSTATUS();
+@@ -99,11 +92,21 @@ void SystemInit(void)
+     status &= ~(0x2 << 16);
+     __set_MEXSTATUS(status);
+ #endif
+-
++    
++    interrupt_init();
++    
+     cache_init();
+     section_init();
+-    interrupt_init();
++    
+     soc_set_sys_freq(20000000);
+     csi_tick_init();
++
++    //aic_board_sysclk_init();
++    aic_board_pinmux_init();
++    uart_init(0);
++    
++    for(int i =0;i < strlen(str); i++) {
++        uart_putchar(0, str[i]);
++    }
+ }
+ 
+diff --git a/components/chip_d133_cbs/src/sys/sys_clk.c b/components/chip_d133_cbs/src/sys/sys_clk.c
+index bd1c2c2..ea4c878 100644
+--- a/components/chip_d133_cbs/src/sys/sys_clk.c
++++ b/components/chip_d133_cbs/src/sys/sys_clk.c
+@@ -112,8 +112,9 @@ static void usb_ehci_disable(void)
+ void aic_board_sysclk_init(void)
+ {
+     uint32_t i = 0;
+-
+-    usb_ehci_disable();
++    
++    #warning "fxi me"
++    //usb_ehci_disable();
+ 
+     for (i=0; i<sizeof(aic_sysclk_config)/sizeof(struct aic_sysclk); i++) {
+         if (aic_sysclk_config[i].freq == 0)
+-- 
+2.34.1
+
