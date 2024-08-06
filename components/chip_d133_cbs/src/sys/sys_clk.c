@@ -112,8 +112,9 @@ static void usb_ehci_disable(void)
 void aic_board_sysclk_init(void)
 {
     uint32_t i = 0;
-
-    usb_ehci_disable();
+    
+    #warning "fxi me"
+    //usb_ehci_disable();
 
     for (i=0; i<sizeof(aic_sysclk_config)/sizeof(struct aic_sysclk); i++) {
         if (aic_sysclk_config[i].freq == 0)

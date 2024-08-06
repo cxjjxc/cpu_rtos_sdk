@@ -418,12 +418,16 @@ typedef struct {
   @{
  */
 
+#ifndef CPU_BASE
+#define CPU_BASE  0xE0000000
+#endif
+
 /* Memory mapping of THEAD CPU */
-#define TCIP_BASE           (0xE000E000UL)                            /*!< Titly Coupled IP Base Address */
-#define CORET_BASE          (0xE0004000UL)                            /*!< CORET Base Address */
-#define CLIC_BASE           (0xE0800000UL)                            /*!< CLIC Base Address */
-#define SYSMAP_BASE         (0xEFFFF000UL)                            /*!< SYSMAP Base Address */
-#define DCC_BASE            (0xE4010000UL)                            /*!< DCC Base Address */
+#define TCIP_BASE           (CPU_BASE + 0x0000E000UL)                            /*!< Titly Coupled IP Base Address */
+#define CORET_BASE          (CPU_BASE + 0x00004000UL)                            /*!< CORET Base Address */
+#define CLIC_BASE           (CPU_BASE + 0x00800000UL)                            /*!< CLIC Base Address */
+#define SYSMAP_BASE         (CPU_BASE + 0x0FFFF000UL)                            /*!< SYSMAP Base Address */
+#define DCC_BASE            (CPU_BASE + 0x04010000UL)                            /*!< DCC Base Address */
 #define CACHE_BASE          (TCIP_BASE +  0x1000UL)                   /*!< CACHE Base Address */
 
 #define CORET               ((CORET_Type   *)     CORET_BASE  )       /*!< SysTick configuration struct */
