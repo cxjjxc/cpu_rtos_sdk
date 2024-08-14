@@ -1,29 +1,27 @@
 
 ## 第一部分： 基础信息
-name: board_riscv_dummy                             # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
-version: v7.9.1                                     # <必选项> 组件版本号
-description: riscv dummy development board config.  # <必选项> 建议至少20字以上
-type: board                                         # <必选项> 组件类型，为：solution, chip, board, common, sdk
+name: chip_stm32h743                                # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+version: v7.8.0                                    # <必选项> 组件版本号
+description: arm cpu dummy CSI driver SDK.          # <必选项> 建议至少20字以上
+type: chip                                          # <必选项> 组件类型，为：solution, chip, board, common, sdk
 tag: 核心模块                                       # <可选项> 组件分类，缺省值： ''
+keywords:                                           # <可选项> 标签，会影响到组件被搜索的效果，合理的标签很重要
+  - base
 license: Apache license v2.0                        # <可选项> 源代码的许可证，要确保所有代码、文件的许可证不冲突。如：MIT，Apache license v2.0，BSD
 
 ## 第二部分：依赖信息
-#           指定该组件依赖的组件及版本，版本支持条件比较，支持：>=v1.0, >v1.0, ==v1.0, <=v1.0, <v1.0, v1.0
-#           未指定条件时，默认为 ==，如 v1.0 与 ==v1.0
+#           指定该组件依赖的组件及版本
 # sdk_chip:                                # <可选项> 该组件依赖sdk组件，合理的依赖才能保证组件能编译、使用
-#   - sdk_chip_csky_dummy: v7.9.1
-#   - sdk_chip_riscv_dummy: v7.9.1
-# depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
-#   - minilibc: v7.2.0
-#   - aos: >=v7.2.0
-depends:
-  - chip_riscv_dummy: v7.9.1
+#   - sdk_chip_csky_dummy: v7.4.0
+#   - sdk_chip_riscv_dummy: v7.4.0
+depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
+  - cmsis: v7.8.0
 
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
 #   cpu_id: cpu0
 #   cpu_name: CK804EF
-#   vendor_name: xuantie
+#   vendor_name: t-head
 #   chip_name: chip_pangu                  # <可选项> 指定芯片组件名,未设置时，使用depends中 chip 第一个组件
 #   board_name: pangu_cpu0_evb             # <可选项> 指定开发板组件名，未设置时，使用depends中 board 第一个组件
 #   ld_script: configs/gcc_eflash.ld       # <可选项> 连接时使用 LD 脚本，当选把未设置时，使用对应的 board 的 LD 脚本
@@ -40,13 +38,32 @@ depends:
 #     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
 #     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
 
-## board component
+## chip component (单处理器)
 # hw_info:
-#   chip_name: chip_pangu
+#   cpu_name: CK804EF
 #   ld_script: configs/gcc_eflash.ld
+#   toolchain_prefix: csky-abiv2-elf
+#   flash_program: bin/flash_program.elf
+
+## chip component(多处理器)
+# hw_info:
+#   cpu0:
+#     cpu_name: CK804EF                    # <必选项> 该芯片使用的 CPU 型号
+#     ld_script: configs/gcc_eflash.ld     # <必选项> 连接时使用 LD 脚本
+#     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
+#     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
+#   cpu1:
+#     cpu_name: CK804EF                    # <必选项> 该芯片使用的 CPU 型号
+#     ld_script: configs/gcc_eflash.ld     # <必选项> 连接时使用 LD 脚本
+#     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
+#     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
 hw_info:
+  arch_name: arm
   vendor_name: dummy
-  chip_name: chip_riscv_dummy
+  cpu_name: cortex-m7
+  ld_script: gcc_xip.ld
+  flash_program: nofile
+  toolchain_prefix: arm-none-eabi
 
 ## 第四部分：编译连接信息
 # build_config:                            # <可选项> 编译配置项
@@ -67,30 +84,40 @@ hw_info:
 #   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
 #     - libs                               #   -Llibs
 build_config:
-  cflag: >
-    -nostdlib -Wpointer-arith -Wno-undef -Wall -Wl,-EL -ffunction-sections
-    -fdata-sections -fno-inline-functions -fno-builtin -fno-strict-aliasing
-    -fno-strength-reduce
-  ldflag: '-Wl,-zmax-page-size=1024 -Wl,-Map=yoc.map'
+  cflag: ' -Wno-unused-function -Os -g -mfloat-abi=soft -mcpu=cortex-m7'
+  cxxflag: ' -Wno-unused-function -Os -g'
+  define:
+    - NO_MORE_DEFINE
   include:
     - include
-
-  prebuild_script: "script/pre_build.sh"
-  postbuild_script: "script/aft_build.sh"
+    - sys
+    - drivers/STM32H7xx_HAL_Driver/Inc
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - "src/board_init.c"
-  - "src/adc/board_adc.c"
-  - "src/audio/board_audio.c"
-  - "src/bt/board_bt.c"
-  - "src/button/board_button.c"
-  - "src/gpio/board_gpio.c"
-  - "src/led/board_led.c"
-  - "src/pwm/board_pwm.c"
-  - "src/uart/board_uart.c"
-  - "src/wifi/board_wifi.c"
+  - "arch/<arch>/<cpu>/*.c"
+  - "arch/<arch>/<cpu>/*.S"
+  - "drivers/*.S"
+  - "drivers/*.c"
+  - "sys/*.S"
+  - "sys/*.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart_ex.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c_ex.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma.c"
+  - "drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c"
+  - "drivers/stm32h7xx_hal_msp.c"
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -98,12 +125,23 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-  CONFIG_ARCH_MAINSTACK: 4096              # for baremetal application
-  CONFIG_ARCH_INTERRUPTSTACK: 4096
-  CONFIG_INIT_TASK_STACK_SIZE: 4096
-  CONFIG_APP_TASK_STACK_SIZE: 4096
-  CONFIG_SYSTICK_HZ: 100
-  CONFIG_BOARD_SMARTL_EVB: 1
+  CONFIG_CSI: csi2
+  CONFIG_SUPPORT_TSPEND: 1
+  CONFIG_XIP: 1
+  CONFIG_CSI_V2: 1
+  __CPU_CORTEXM7__: 1
+  STM32H743xx: 1
+  _RTE_: 1
+  USE_HAL_DRIVER: 1
+  HAL_CORTEX_MODULE_ENABLED: 1
+  HAL_RCC_MODULE_ENABLED: 1
+  HAL_PWR_MODULE_ENABLED: 1
+  HAL_FLASH_MODULE_ENABLED: 1
+  HAL_RCC_MODULE_ENABLED: 1
+  HAL_PWR_MODULE_ENABLED: 1
+  HAL_GPIO_MODULE_ENABLED: 1
+  HAL_I2C_MODULE_ENABLED: 1
+  HAL_ADC_MODULE_ENABLED: 1
 
 ## 第六部分：安装信息
 # install:
@@ -111,15 +149,9 @@ def_config:
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
 install:
-  - dest: "include"
+  - dest: "include/csi/chip/chip_arm_dummy"
     source:
       - "include/*.h"
-  - dest: "board_dummy/bootimgs"
-    source:
-      - "bootimgs/*"
-  - dest: "board_dummy/configs"
-    source:
-      - "configs/*"
 
 ## 第七部分：导出部分
 # export:

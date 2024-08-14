@@ -21,6 +21,8 @@ depends:
   - chip_riscv_dummy: v7.9.1
   - board_d133_cbv: v7.9.1
   - chip_d133_cbs: v7.9.1
+  - board_stm32h743_ref: v7.8.0
+  - chip_stm32h743: v7.8.0
 
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段

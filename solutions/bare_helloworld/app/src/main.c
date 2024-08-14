@@ -10,7 +10,7 @@ int main(void)
 {
     board_init();
     printf("Hello World!\n");
-#if !CONFIG_CPU_E9XX
+#if !CONFIG_CPU_E9XX && !__arm__
     printf("cpu work mode = %s!\n", csi_get_cpu_work_mode() == 1 ? "Supervisor" : "Machine");
 #endif
 
